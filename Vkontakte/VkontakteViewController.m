@@ -22,9 +22,15 @@
                      innerString:(NSString*)str;
 @end
 
+@interface VkontakteViewController ()
+
+@property (nonatomic) BOOL isViewAppeared;
+
+@end
+
 @implementation VkontakteViewController (Private)
 
-- (NSString*)stringBetweenString:(NSString*)start 
+- (NSString*)stringBetweenString:(NSString*)start
                        andString:(NSString*)end 
                      innerString:(NSString*)str 
 {
@@ -47,6 +53,8 @@
 @implementation VkontakteViewController
 
 @synthesize delegate;
+@synthesize
+isViewAppeared = _isViewAppeared;
 
 - (id)initWithAuthLink:(NSURL *)link
 {
@@ -79,6 +87,22 @@
     [_webView loadRequest:[NSURLRequest requestWithURL:_authLink]];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    self.isViewAppeared = NO;
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    self.isViewAppeared = YES;
+    
+    if (![_webView isLoading]) {
+        [self handleWebViewDidFinishLoad:_webView];
+    }
+}
+
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     // Return YES for supported orientations
@@ -105,7 +129,15 @@
     [_hud show:YES];
 }
 
-- (void)webViewDidFinishLoad:(UIWebView *)webView 
+
+
+- (void)webViewDidFinishLoad:(UIWebView *)webView {
+    if (self.isViewAppeared) {
+        [self handleWebViewDidFinishLoad:webView];
+    }
+}
+
+- (void)handleWebViewDidFinishLoad:(UIWebView *)webView
 {
     NSString *webViewText = [_webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.innerText"];
     
