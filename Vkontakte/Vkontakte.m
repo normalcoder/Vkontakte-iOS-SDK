@@ -237,16 +237,10 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     if (self) 
     {
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        if ([defaults objectForKey:@"VKAccessTokenKey"] 
-            && [defaults objectForKey:@"VKExpirationDateKey"]
-            && [defaults objectForKey:@"VKUserID"]
-            && [defaults objectForKey:@"VKUserEmail"]) 
-        {
-            accessToken = [defaults objectForKey:@"VKAccessTokenKey"];
-            expirationDate = [defaults objectForKey:@"VKExpirationDateKey"];
-            userId = [defaults objectForKey:@"VKUserID"];
-            email = [defaults objectForKey:@"VKUserEmail"];
-        }
+        accessToken = [defaults objectForKey:@"VKAccessTokenKey"];
+        expirationDate = [defaults objectForKey:@"VKExpirationDateKey"];
+        userId = [defaults objectForKey:@"VKUserID"];
+        email = [defaults objectForKey:@"VKUserEmail"];
     }
     return self;
 }
