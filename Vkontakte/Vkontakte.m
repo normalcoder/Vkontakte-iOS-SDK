@@ -349,7 +349,9 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
         
         if (self.delegate && [self.delegate respondsToSelector:@selector(vkontakteDidFinishLogOut:)]) 
         {
-            [self.delegate vkontakteDidFinishLogOut:self];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate vkontakteDidFinishLogOut:self];
+            });
         }
     }
 }
