@@ -135,6 +135,11 @@ isViewAppeared = _isViewAppeared;
     if (self.isViewAppeared) {
         [self handleWebViewDidFinishLoad:webView];
     }
+    
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    [_hud hide:YES];
+    [_hud removeFromSuperview];
+	_hud = nil;
 }
 
 - (void)handleWebViewDidFinishLoad:(UIWebView *)webView
@@ -199,11 +204,6 @@ isViewAppeared = _isViewAppeared;
             [self.delegate authorizationDidFailedWithError:nil];
         }
     }
-    
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];  
-    [_hud hide:YES];
-    [_hud removeFromSuperview];
-	_hud = nil;
 }
 
 -(void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error 
