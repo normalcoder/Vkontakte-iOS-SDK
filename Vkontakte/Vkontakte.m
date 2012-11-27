@@ -278,7 +278,13 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     }
 }
 
-- (void)logout
+- (void)logout {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
+        [self _logout];
+    });
+}
+
+- (void)_logout
 {
     NSString *logout = [NSString stringWithFormat:@"http://api.vk.com/oauth/logout?client_id=%@", vkAppId];
     
@@ -356,7 +362,13 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     }
 }
 
-- (void)getUserInfo
+- (void)getUserInfo {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
+        [self _getUserInfo];
+    });
+}
+
+- (void)_getUserInfo
 {    
     if (![self isAuthorized]) return;
     
