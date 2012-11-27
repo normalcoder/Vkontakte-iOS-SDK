@@ -378,14 +378,15 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
 	NSLog(@"%@",responseString);
     
     NSError* error;
-    NSDictionary* parsedDictionary = [NSJSONSerialization 
-                          JSONObjectWithData:response
-                          options:kNilOptions 
-                          error:&error];
+    NSDictionary<VkUserInfo> * parsedDictionary =
+    [NSJSONSerialization
+     JSONObjectWithData:response
+     options:kNilOptions
+     error:&error];
     
     NSArray *array = [parsedDictionary objectForKey:@"response"];
     
-    if ([parsedDictionary objectForKey:@"response"]) 
+    if ([parsedDictionary objectForKey:@"response"])
     {
         parsedDictionary = [array objectAtIndex:0];
         parsedDictionary = [NSMutableDictionary dictionaryWithDictionary:parsedDictionary];
@@ -393,7 +394,9 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
         
         if ([self.delegate respondsToSelector:@selector(vkontakteDidFinishGettinUserInfo:)])
         {
-            [self.delegate vkontakteDidFinishGettinUserInfo:parsedDictionary];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate vkontakteDidFinishGettinUserInfo:parsedDictionary];
+            });
         }
     }
     else
@@ -411,7 +414,9 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
                 [self logout];
             }
             
-            [self.delegate vkontakteDidFailedWithError:error];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate vkontakteDidFailedWithError:error];
+            });
         }
     }
 }
