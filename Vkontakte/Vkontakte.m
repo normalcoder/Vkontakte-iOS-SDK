@@ -297,31 +297,25 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
                               error:&error];
         NSLog(@"Logout: %@", dict);
         
-        NSHTTPCookieStorage* cookies = [NSHTTPCookieStorage sharedHTTPCookieStorage];
-        NSArray* vkCookies1 = [cookies cookiesForURL:
-                               [NSURL URLWithString:@"http://api.vk.com"]];
-        NSArray* vkCookies2 = [cookies cookiesForURL:
-                               [NSURL URLWithString:@"http://vk.com"]];
-        NSArray* vkCookies3 = [cookies cookiesForURL:
-                               [NSURL URLWithString:@"http://login.vk.com"]];
-        NSArray* vkCookies4 = [cookies cookiesForURL:
-                               [NSURL URLWithString:@"http://oauth.vk.com"]];
         
-        for (NSHTTPCookie* cookie in vkCookies1) 
-        {
-            [cookies deleteCookie:cookie];
-        }
-        for (NSHTTPCookie* cookie in vkCookies2) 
-        {
-            [cookies deleteCookie:cookie];
-        }
-        for (NSHTTPCookie* cookie in vkCookies3) 
-        {
-            [cookies deleteCookie:cookie];
-        }
-        for (NSHTTPCookie* cookie in vkCookies4) 
-        {
-            [cookies deleteCookie:cookie];
+        NSHTTPCookieStorage * cookies = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+        NSArray * cookiesUrlStrings =
+        @[@"http://api.vk.com"
+        , @"http://vk.com"
+        , @"http://login.vk.com"
+        , @"http://oauth.vk.com"
+        
+        , @"https://api.vk.com"
+        , @"https://vk.com"
+        , @"https://login.vk.com"
+        , @"https://oauth.vk.com"
+        ];
+        
+        for (NSString * string in cookiesUrlStrings) {
+            NSArray * vkCookies = [cookies cookiesForURL:[NSURL URLWithString:string]];
+            for (NSHTTPCookie * cookie in vkCookies) {
+                [cookies deleteCookie:cookie];
+            }
         }
         
         // Remove saved authorization information if it exists and it is
@@ -419,7 +413,7 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
             
             if (error.code == 5) 
             {
-                [self logout];
+                [self _logout];
             }
             
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -454,7 +448,7 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
             
             if (error.code == 5) 
             {
-                [self logout];
+                [self _logout];
             }
             
             [self.delegate vkontakteDidFailedWithError:error];
@@ -498,7 +492,7 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
             
             if (error.code == 5) 
             {
-                [self logout];
+                [self _logout];
             }
             
             [self.delegate vkontakteDidFailedWithError:error];
@@ -579,7 +573,7 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
             
             if (error.code == 5) 
             {
-                [self logout];
+                [self _logout];
             }
             
             [self.delegate vkontakteDidFailedWithError:error];
