@@ -54,6 +54,10 @@ extern NSString * const vkRedirectUrl;
 + (id)sharedInstance;
 - (BOOL)isAuthorized;
 - (void)authenticate;
+- (void)authenticateSuccess:(void (^)())success
+                    failure:(void (^)(NSError *))failure
+         showAuthController:(void (^)(UIViewController *))showAuthController
+                     cancel:(void (^)())cancel;
 - (void)logout;
 - (void)getUserInfo;
 - (void)postMessageToWall:(NSString *)message;

@@ -256,6 +256,13 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     }
 }
 
+- (void)authenticateSuccess:(void (^)())success
+                    failure:(void (^)(NSError *))failure
+         showAuthController:(void (^)(UIViewController *))showAuthController
+                     cancel:(void (^)())cancel {
+    
+}
+
 - (void)authenticate
 {
     /*
