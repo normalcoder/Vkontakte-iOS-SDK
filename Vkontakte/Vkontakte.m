@@ -263,6 +263,13 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     }
 }
 
+- (void)authenticateSuccess:(void (^)())success
+                    failure:(void (^)(NSError *))failure
+         showAuthController:(void (^)(UIViewController *))showAuthController
+                     cancel:(void (^)())cancel {
+    
+}
+
 - (void)authenticate
 {
     NSString *authLink = [NSString stringWithFormat:@"http://oauth.vk.com/oauth/authorize?client_id=%@&scope=%@&redirect_uri=%@&display=touch&response_type=token", vkAppId, vkPermissions, vkRedirectUrl];
