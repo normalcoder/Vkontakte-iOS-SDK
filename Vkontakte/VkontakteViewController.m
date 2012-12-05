@@ -159,10 +159,17 @@ isViewAppeared = _isViewAppeared;
         {
             [self.delegate authorizationDidFailedWithError:nil];
         }
-    } 
-    else if ([webView.request.URL.absoluteString rangeOfString:@"access_token"].location != NSNotFound) 
+    }
+    
+    /*
+     WARNING: these two "code" params were "access_token" initially.
+     This quick patch allows us to use VK's code auth mechanism instead of getting an access token right here.
+     It means that the other VK functions in this lib are now broken.
+     To fix this, we need to request our own access_token using the code we've just received.
+     */
+    else if ([webView.request.URL.absoluteString rangeOfString:@"code"].location != NSNotFound)
     {
-        NSString *accessToken = [self stringBetweenString:@"access_token=" 
+        NSString *accessToken = [self stringBetweenString:@"code="
                                                 andString:@"&" 
                                               innerString:[[[webView request] URL] absoluteString]];
         

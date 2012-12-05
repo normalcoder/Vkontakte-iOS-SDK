@@ -172,7 +172,7 @@
     NSMutableData *body = [NSMutableData data];
     
     [body appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-    [body appendData:[[NSString stringWithString:@"Content-Disposition: form-data; name=\"photo\"; filename=\"photo.jpg\"\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+    [body appendData:[@"Content-Disposition: form-data; name=\"photo\"; filename=\"photo.jpg\"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
     [body appendData:[@"Content-Type: image/jpg\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
     [body appendData:imageData];        
     [body appendData:[[NSString stringWithFormat:@"%@",endItemBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -212,9 +212,8 @@
 
 @implementation Vkontakte
 
-#warning Provide your vkontakte app id
-NSString * const vkAppId = @"2440436";//@"YOUR_VK_APP_ID";
-NSString * const vkPermissions = @"wall,photos,offline";
+NSString * const vkAppId = @"3276219"; // Wisdom
+NSString * const vkPermissions = @""; //@"wall,photos,offline"; // TODO: add the necessary permissions
 NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
 
 @synthesize delegate;
@@ -259,7 +258,13 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
 
 - (void)authenticate
 {
-    NSString *authLink = [NSString stringWithFormat:@"http://oauth.vk.com/oauth/authorize?client_id=%@&scope=%@&redirect_uri=%@&display=touch&response_type=token", vkAppId, vkPermissions, vkRedirectUrl];
+    /*
+     WARNING: auth_type was set to "token" here.
+     This quick patch allows us to use VK's code auth mechanism instead of getting an access token right here.
+     It means that the other VK functions in this lib are now broken.
+     To fix this, we need to request our own access_token using the code we've just received.
+     */
+    NSString *authLink = [NSString stringWithFormat:@"http://oauth.vk.com/oauth/authorize?client_id=%@&scope=%@&redirect_uri=%@&display=touch&response_type=code", vkAppId, vkPermissions, vkRedirectUrl];
     NSURL *url = [NSURL URLWithString:authLink];
     
     VkontakteViewController *vkontakteViewController = [[VkontakteViewController alloc] initWithAuthLink:url];
