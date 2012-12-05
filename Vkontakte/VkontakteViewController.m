@@ -22,9 +22,15 @@
                      innerString:(NSString*)str;
 @end
 
+@interface VkontakteViewController ()
+
+@property (nonatomic) BOOL isViewAppeared;
+
+@end
+
 @implementation VkontakteViewController (Private)
 
-- (NSString*)stringBetweenString:(NSString*)start 
+- (NSString*)stringBetweenString:(NSString*)start
                        andString:(NSString*)end 
                      innerString:(NSString*)str 
 {
@@ -47,6 +53,8 @@
 @implementation VkontakteViewController
 
 @synthesize delegate;
+@synthesize
+isViewAppeared = _isViewAppeared;
 
 - (id)initWithAuthLink:(NSURL *)link
 {
@@ -79,6 +87,22 @@
     [_webView loadRequest:[NSURLRequest requestWithURL:_authLink]];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    self.isViewAppeared = NO;
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    self.isViewAppeared = YES;
+    
+    if (![_webView isLoading]) {
+        [self handleWebViewDidFinishLoad:_webView];
+    }
+}
+
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     // Return YES for supported orientations
@@ -105,7 +129,20 @@
     [_hud show:YES];
 }
 
-- (void)webViewDidFinishLoad:(UIWebView *)webView 
+
+
+- (void)webViewDidFinishLoad:(UIWebView *)webView {
+    if (self.isViewAppeared) {
+        [self handleWebViewDidFinishLoad:webView];
+    }
+    
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    [_hud hide:YES];
+    [_hud removeFromSuperview];
+	_hud = nil;
+}
+
+- (void)handleWebViewDidFinishLoad:(UIWebView *)webView
 {
     NSString *webViewText = [_webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.innerText"];
     
@@ -122,10 +159,17 @@
         {
             [self.delegate authorizationDidFailedWithError:nil];
         }
-    } 
-    else if ([webView.request.URL.absoluteString rangeOfString:@"access_token"].location != NSNotFound) 
+    }
+    
+    /*
+     WARNING: these two "code" params were "access_token" initially.
+     This quick patch allows us to use VK's code auth mechanism instead of getting an access token right here.
+     It means that the other VK functions in this lib are now broken.
+     To fix this, we need to request our own access_token using the code we've just received.
+     */
+    else if ([webView.request.URL.absoluteString rangeOfString:@"code"].location != NSNotFound)
     {
-        NSString *accessToken = [self stringBetweenString:@"access_token=" 
+        NSString *accessToken = [self stringBetweenString:@"code="
                                                 andString:@"&" 
                                               innerString:[[[webView request] URL] absoluteString]];
         
@@ -167,11 +211,6 @@
             [self.delegate authorizationDidFailedWithError:nil];
         }
     }
-    
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];  
-    [_hud hide:YES];
-    [_hud removeFromSuperview];
-	_hud = nil;
 }
 
 -(void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error 

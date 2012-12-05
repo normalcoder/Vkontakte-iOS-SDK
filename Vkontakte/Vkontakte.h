@@ -21,6 +21,21 @@ extern NSString * const vkAppId;
 extern NSString * const vkPermissions;
 extern NSString * const vkRedirectUrl;
 
+
+@protocol VkUserInfo
+
+//@property (strong, nonatomic) NSString * bdate;
+//@property (strong, nonatomic) NSString * first_name;
+//@property (strong, nonatomic) NSString * last_name;
+//@property (strong, nonatomic) NSString * photo;
+//@property (strong, nonatomic) NSString * photo_big;
+//@property (strong, nonatomic) NSNumber * sex;
+//@property (strong, nonatomic) NSString * email;
+//@property (strong, nonatomic) NSNumber * uid;
+
+@end
+
+
 @protocol VkontakteDelegate;
 
 @interface Vkontakte : NSObject <VkontakteViewControllerDelegate, UIAlertViewDelegate>
@@ -58,7 +73,7 @@ extern NSString * const vkRedirectUrl;
 - (void)vkontakteDidFinishLogin:(Vkontakte *)vkontakte;
 - (void)vkontakteDidFinishLogOut:(Vkontakte *)vkontakte;
 
-- (void)vkontakteDidFinishGettinUserInfo:(NSDictionary *)info;
+- (void)vkontakteDidFinishGettinUserInfo:(NSDictionary<VkUserInfo> *)info;
 - (void)vkontakteDidFinishPostingToWall:(NSDictionary *)responce;
 
 @end
