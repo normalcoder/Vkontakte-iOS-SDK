@@ -26,6 +26,10 @@
 
 @property (nonatomic) BOOL isViewAppeared;
 
+@property (strong, nonatomic) VkAuthSuccessHandler success;
+@property (strong, nonatomic) VkAuthFailureHandler failure;
+@property (strong, nonatomic) VkAuthCancelHandler cancel;
+
 @end
 
 @implementation VkontakteViewController (Private)
@@ -57,11 +61,17 @@
 isViewAppeared = _isViewAppeared;
 
 - (id)initWithAuthLink:(NSURL *)link
+               success:(VkAuthSuccessHandler)success
+               failure:(VkAuthFailureHandler)failure
+                cancel:(VkAuthCancelHandler)cancel
 {
     self = [super init];
     if (self) 
     {
         _authLink = link;
+        self.success = success;
+        self.failure = failure;
+        self.cancel = cancel;
     }
     return self;
 }
@@ -111,6 +121,8 @@ isViewAppeared = _isViewAppeared;
 
 - (void)cancelButtonPressed:(id)sender
 {
+    self.cancel();
+    
     if ([self.delegate respondsToSelector:@selector(authorizationDidCanceled)])
     {
         [self.delegate authorizationDidCanceled];
@@ -155,6 +167,8 @@ isViewAppeared = _isViewAppeared;
                                               otherButtonTitles:nil, nil];
         [alert show];
         
+        
+        
         if (self.delegate && [self.delegate respondsToSelector:@selector(authorizationDidFailedWithError:)]) 
         {
             [self.delegate authorizationDidFailedWithError:nil];
@@ -169,6 +183,8 @@ isViewAppeared = _isViewAppeared;
      */
     else if ([webView.request.URL.absoluteString rangeOfString:@"code"].location != NSNotFound)
     {
+        NSLog(@"webView.request.URL.absoluteString: %@", webView.request.URL.absoluteString);
+        
         NSString *accessToken = [self stringBetweenString:@"code="
                                                 andString:@"&" 
                                               innerString:[[[webView request] URL] absoluteString]];
@@ -194,6 +210,8 @@ isViewAppeared = _isViewAppeared;
                 expirationDate = [NSDate dateWithTimeIntervalSinceNow:expVal];
             } 
         }
+        
+        self.success(accessToken, expirationDate, user_id, _userEmail);
         
         if (self.delegate && [self.delegate respondsToSelector:@selector(authorizationDidSucceedWithToke:userId:expDate:userEmail:)]) 
         {

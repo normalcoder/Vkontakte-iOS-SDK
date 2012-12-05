@@ -256,15 +256,10 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     }
 }
 
-- (void)authenticateSuccess:(void (^)())success
-                    failure:(void (^)(NSError *))failure
-         showAuthController:(void (^)(UIViewController *))showAuthController
-                     cancel:(void (^)())cancel {
-    
-}
-
-- (void)authenticate
-{
+- (void)authenticateBaseViewController:(UIViewController *)baseViewController
+                               success:(void (^)())success
+                               failure:(void (^)(NSError *))failure
+                               cancel:(void (^)())cancel {
     /*
      WARNING: auth_type was set to "token" here.
      This quick patch allows us to use VK's code auth mechanism instead of getting an access token right here.
@@ -274,14 +269,34 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     NSString *authLink = [NSString stringWithFormat:@"http://oauth.vk.com/oauth/authorize?client_id=%@&scope=%@&redirect_uri=%@&display=touch&response_type=code", vkAppId, vkPermissions, vkRedirectUrl];
     NSURL *url = [NSURL URLWithString:authLink];
     
-    VkontakteViewController *vkontakteViewController = [[VkontakteViewController alloc] initWithAuthLink:url];
+    VkontakteViewController *vkontakteViewController =
+    [[VkontakteViewController alloc]
+     initWithAuthLink:url
+     success:^(NSString *accessToken_, NSDate * expirationDate_, NSString *userId_, NSString *email_){
+         accessToken = accessToken_;
+         expirationDate = expirationDate_;
+         userId = userId_;
+         email = email_;
+         [self storeSession];
+         
+         success();
+     } failure:^(NSError * e) {
+         failure(e);
+     } cancel:^{
+         cancel();
+     }];
     vkontakteViewController.delegate = self;
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:vkontakteViewController];
     
-    if (self.delegate && [self.delegate respondsToSelector:@selector(showVkontakteAuthController:)]) 
-    {
-        [self.delegate showVkontakteAuthController:navController];
-    }
+    [baseViewController presentViewController:navController
+                                     animated:YES
+                                   completion:
+     ^{}];
+    
+//    if (self.delegate && [self.delegate respondsToSelector:@selector(showVkontakteAuthController:)])
+//    {
+//        [self.delegate showVkontakteAuthController:navController];
+//    }
 }
 
 - (void)logout {

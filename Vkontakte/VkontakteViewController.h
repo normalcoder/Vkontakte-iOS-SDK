@@ -17,6 +17,11 @@
 #import <UIKit/UIKit.h>
 #import "MBProgressHUD.h"
 
+typedef void (^VkAuthSuccessHandler)(NSString * accessToken, NSDate * expirationDate, NSString * userId, NSString * email);
+typedef void (^VkAuthFailureHandler)(NSError * error);
+typedef void (^VkAuthCancelHandler)();
+
+
 @protocol VkontakteViewControllerDelegate;
 @interface VkontakteViewController : UIViewController <UIWebViewDelegate, MBProgressHUDDelegate>
 {
@@ -28,7 +33,10 @@
 
 @property (nonatomic, weak) id <VkontakteViewControllerDelegate> delegate;  
 
-- (id)initWithAuthLink:(NSURL *)link;
+- (id)initWithAuthLink:(NSURL *)link
+               success:(VkAuthSuccessHandler)success
+               failure:(VkAuthFailureHandler)failure
+                cancel:(VkAuthCancelHandler)cancel;
 
 @end
 
