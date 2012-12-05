@@ -16,41 +16,17 @@
 
 #import "VkontakteViewController.h"
 
-@interface VkontakteViewController (Private)
-- (NSString*)stringBetweenString:(NSString*)start 
-                       andString:(NSString*)end 
-                     innerString:(NSString*)str;
-@end
+NSString * VkErrorDomain = @"VkErrorDomain";
+NSInteger VkAuthErrorCode = 1;
 
 @interface VkontakteViewController ()
 
 @property (nonatomic) BOOL isViewAppeared;
 
+@property (strong, nonatomic) UIViewController * baseViewController;
 @property (strong, nonatomic) VkAuthSuccessHandler success;
 @property (strong, nonatomic) VkAuthFailureHandler failure;
 @property (strong, nonatomic) VkAuthCancelHandler cancel;
-
-@end
-
-@implementation VkontakteViewController (Private)
-
-- (NSString*)stringBetweenString:(NSString*)start
-                       andString:(NSString*)end 
-                     innerString:(NSString*)str 
-{
-    NSScanner* scanner = [NSScanner scannerWithString:str];
-    [scanner setCharactersToBeSkipped:nil];
-    [scanner scanUpToString:start intoString:nil];
-    if ([scanner scanString:start intoString:nil]) 
-    {
-        NSString* result = nil;
-        if ([scanner scanUpToString:end intoString:&result]) 
-        {
-            return result;
-        }
-    }
-    return nil;
-}
 
 @end
 
@@ -61,6 +37,7 @@
 isViewAppeared = _isViewAppeared;
 
 - (id)initWithAuthLink:(NSURL *)link
+    baseViewController:baseViewController
                success:(VkAuthSuccessHandler)success
                failure:(VkAuthFailureHandler)failure
                 cancel:(VkAuthCancelHandler)cancel
@@ -69,6 +46,7 @@ isViewAppeared = _isViewAppeared;
     if (self) 
     {
         _authLink = link;
+        self.baseViewController = baseViewController;
         self.success = success;
         self.failure = failure;
         self.cancel = cancel;
@@ -121,17 +99,16 @@ isViewAppeared = _isViewAppeared;
 
 - (void)cancelButtonPressed:(id)sender
 {
-    self.cancel();
-    
-    if ([self.delegate respondsToSelector:@selector(authorizationDidCanceled)])
-    {
-        [self.delegate authorizationDidCanceled];
-    }
+    [self.baseViewController dismissViewControllerAnimated:YES
+                                                completion:
+     ^{
+         self.cancel();
+     }];
 }
 
 #pragma mark - WebViewDelegate
 
-- (void)webViewDidStartLoad:(UIWebView *)webView 
+- (void)webViewDidStartLoad:(UIWebView *)webView
 {
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES]; 
     _hud = [[MBProgressHUD alloc] initWithView:self.navigationController.view];
@@ -154,9 +131,46 @@ isViewAppeared = _isViewAppeared;
 	_hud = nil;
 }
 
+typedef enum {
+    VkUrlStringParseResultCode,
+    VkUrlStringParseResultError,
+    VkUrlStringParseResultNothing,
+} VkUrlStringParseResult;
+
+NSString * stringBetweenStrings(NSString * start, NSString * end, NSString * innerString) {
+    NSScanner * scanner = [NSScanner scannerWithString:innerString];
+    [scanner setCharactersToBeSkipped:nil];
+    [scanner scanUpToString:start intoString:nil];
+    if ([scanner scanString:start intoString:nil])
+    {
+        NSString* result = nil;
+        if ([scanner scanUpToString:end intoString:&result])
+        {
+            return result;
+        }
+    }
+    return nil;
+}
+
+VkUrlStringParseResult parseUrlString(NSString * urlString, NSString ** code, NSError ** error) {
+    NSString * codeString = stringBetweenStrings(@"blank.html#code=", @"&", urlString);
+    if (codeString) {
+        *code = codeString;
+        return VkUrlStringParseResultCode;
+    } else {
+        if ([urlString rangeOfString:@"error"].location != NSNotFound) {
+            //todo: parse error_description
+            *error = [NSError errorWithDomain:VkErrorDomain code:VkAuthErrorCode userInfo:@{NSLocalizedDescriptionKey : @"Vk auth error"}];
+            return VkUrlStringParseResultError;
+        } else {
+            return VkUrlStringParseResultNothing;
+        }
+    }
+}
+
 - (void)handleWebViewDidFinishLoad:(UIWebView *)webView
 {
-    NSString *webViewText = [_webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.innerText"];
+    NSString * webViewText = [_webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.innerText"];
     
     if ([webViewText caseInsensitiveCompare:@"security breach"] == NSOrderedSame) 
     {
@@ -167,12 +181,11 @@ isViewAppeared = _isViewAppeared;
                                               otherButtonTitles:nil, nil];
         [alert show];
         
-        
-        
-        if (self.delegate && [self.delegate respondsToSelector:@selector(authorizationDidFailedWithError:)]) 
-        {
-            [self.delegate authorizationDidFailedWithError:nil];
-        }
+        [self.baseViewController dismissViewControllerAnimated:YES
+                                                    completion:
+         ^{
+             self.failure([NSError errorWithDomain:VkErrorDomain code:VkAuthErrorCode userInfo:@{NSLocalizedDescriptionKey : @"Vk auth error"}]);
+         }];
     }
     
     /*
@@ -181,52 +194,27 @@ isViewAppeared = _isViewAppeared;
      It means that the other VK functions in this lib are now broken.
      To fix this, we need to request our own access_token using the code we've just received.
      */
-    else if ([webView.request.URL.absoluteString rangeOfString:@"code"].location != NSNotFound)
-    {
-        NSLog(@"webView.request.URL.absoluteString: %@", webView.request.URL.absoluteString);
-        
-        NSString *accessToken = [self stringBetweenString:@"code="
-                                                andString:@"&" 
-                                              innerString:[[[webView request] URL] absoluteString]];
-        
-        // Получаем id пользователя, пригодится нам позднее
-        NSArray *userAr = [[[[webView request] URL] absoluteString] componentsSeparatedByString:@"&user_id="];
-        NSString *user_id = [userAr lastObject];
-        NSLog(@"User id: %@", user_id);
-        
-        NSString *expTime = [self stringBetweenString:@"expires_in=" 
-                                            andString:@"&" 
-                                          innerString:[[[webView request] URL] absoluteString]];
-        NSDate *expirationDate = nil;
-        if (expTime != nil) 
-        {
-            int expVal = [expTime intValue];
-            if (expVal == 0) 
-            {
-                expirationDate = [NSDate distantFuture];
-            } 
-            else 
-            {
-                expirationDate = [NSDate dateWithTimeIntervalSinceNow:expVal];
-            } 
-        }
-        
-        self.success(accessToken, expirationDate, user_id, _userEmail);
-        
-        if (self.delegate && [self.delegate respondsToSelector:@selector(authorizationDidSucceedWithToke:userId:expDate:userEmail:)]) 
-        {
-            [self.delegate authorizationDidSucceedWithToke:accessToken 
-                                                userId:user_id 
-                                               expDate:expirationDate
-                                             userEmail:_userEmail];
-        }
-    } 
-    else if ([webView.request.URL.absoluteString rangeOfString:@"error"].location != NSNotFound) 
-    {
-        NSLog(@"Error: %@", webView.request.URL.absoluteString);
-        if (self.delegate && [self.delegate respondsToSelector:@selector(authorizationDidFailedWithError:)]) 
-        {
-            [self.delegate authorizationDidFailedWithError:nil];
+    else {
+        NSString * code;
+        NSError * error;
+        switch (parseUrlString(webView.request.URL.absoluteString, &code, &error)) {
+            case VkUrlStringParseResultCode: {
+                [self.baseViewController dismissViewControllerAnimated:YES
+                                                            completion:
+                 ^{
+                     self.success(code);
+                 }];
+            } break;
+            case VkUrlStringParseResultError: {
+                [self.baseViewController dismissViewControllerAnimated:YES
+                                                            completion:
+                 ^{
+                     self.failure(error);
+                 }];
+            } break;
+            case VkUrlStringParseResultNothing: {
+            } break;
+            default: assert(NO);
         }
     }
 }

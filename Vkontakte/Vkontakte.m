@@ -257,9 +257,9 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
 }
 
 - (void)authenticateBaseViewController:(UIViewController *)baseViewController
-                               success:(void (^)())success
+                               success:(void (^)(NSString * code))success
                                failure:(void (^)(NSError *))failure
-                               cancel:(void (^)())cancel {
+                                cancel:(void (^)())cancel {
     /*
      WARNING: auth_type was set to "token" here.
      This quick patch allows us to use VK's code auth mechanism instead of getting an access token right here.
@@ -272,14 +272,10 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     VkontakteViewController *vkontakteViewController =
     [[VkontakteViewController alloc]
      initWithAuthLink:url
-     success:^(NSString *accessToken_, NSDate * expirationDate_, NSString *userId_, NSString *email_){
-         accessToken = accessToken_;
-         expirationDate = expirationDate_;
-         userId = userId_;
-         email = email_;
-         [self storeSession];
+     baseViewController:baseViewController
+     success:^(NSString * code){
          
-         success();
+         success(code);
      } failure:^(NSError * e) {
          failure(e);
      } cancel:^{
@@ -292,11 +288,6 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
                                      animated:YES
                                    completion:
      ^{}];
-    
-//    if (self.delegate && [self.delegate respondsToSelector:@selector(showVkontakteAuthController:)])
-//    {
-//        [self.delegate showVkontakteAuthController:navController];
-//    }
 }
 
 - (void)logout {
