@@ -16,6 +16,8 @@
 
 #import "Vkontakte.h"
 
+static NSString * kVKCode = @"VKCode";
+
 @interface Vkontakte (Private)
 
 - (void)storeSession;
@@ -244,6 +246,14 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     return self;
 }
 
+- (void)storeCode:(NSString *)code {
+    [[NSUserDefaults standardUserDefaults] setObject:code forKey:kVKCode];
+}
+
+- (NSString *)storedCode {
+    return [[NSUserDefaults standardUserDefaults] objectForKey:kVKCode];
+}
+
 - (BOOL)isAuthorized
 {    
     if (![self isSessionValid]) 
@@ -274,7 +284,7 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
      initWithAuthLink:url
      baseViewController:baseViewController
      success:^(NSString * code){
-         
+         [self storeCode:code];
          success(code);
      } failure:^(NSError * e) {
          failure(e);

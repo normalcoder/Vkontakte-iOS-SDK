@@ -65,6 +65,9 @@ extern NSString * const vkRedirectUrl;
 - (void)postImageToWall:(UIImage *)image text:(NSString *)message;
 - (void)postImageToWall:(UIImage *)image text:(NSString *)message link:(NSURL *)url;
 
+- (void)storeCode:(NSString *)code;
+- (NSString *)storedCode;
+
 @end
 
 @protocol VkontakteDelegate <NSObject>
