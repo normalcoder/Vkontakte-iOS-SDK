@@ -21,6 +21,10 @@ typedef void (^VkAuthSuccessHandler)(NSString * code);
 typedef void (^VkAuthFailureHandler)(NSError * error);
 typedef void (^VkAuthCancelHandler)();
 
+NSString * VkErrorDomain;
+NSInteger VkAuthErrorCode;
+NSInteger VkAuthCancelledErrorCode;
+
 
 @protocol VkontakteViewControllerDelegate;
 @interface VkontakteViewController : UIViewController <UIWebViewDelegate, MBProgressHUDDelegate>

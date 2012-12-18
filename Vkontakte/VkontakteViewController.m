@@ -18,6 +18,7 @@
 
 NSString * VkErrorDomain = @"VkErrorDomain";
 NSInteger VkAuthErrorCode = 1;
+NSInteger VkAuthCancelledErrorCode = 2;
 
 @interface VkontakteViewController ()
 
