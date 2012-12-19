@@ -270,6 +270,8 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
                                success:(void (^)(NSString * code))success
                                failure:(void (^)(NSError *))failure
                                 cancel:(void (^)())cancel {
+    [self clearCookies];
+    
     /*
      WARNING: auth_type was set to "token" here.
      This quick patch allows us to use VK's code auth mechanism instead of getting an access token right here.
@@ -306,6 +308,28 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     });
 }
 
+- (void)clearCookies {
+    NSHTTPCookieStorage * cookies = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+    NSArray * cookiesUrlStrings =
+    @[@"http://api.vk.com"
+    , @"http://vk.com"
+    , @"http://login.vk.com"
+    , @"http://oauth.vk.com"
+    
+    , @"https://api.vk.com"
+    , @"https://vk.com"
+    , @"https://login.vk.com"
+    , @"https://oauth.vk.com"
+    ];
+    
+    for (NSString * string in cookiesUrlStrings) {
+        NSArray * vkCookies = [cookies cookiesForURL:[NSURL URLWithString:string]];
+        for (NSHTTPCookie * cookie in vkCookies) {
+            [cookies deleteCookie:cookie];
+        }
+    }
+}
+
 - (void)_logout
 {
     NSString *logout = [NSString stringWithFormat:@"http://api.vk.com/oauth/logout?client_id=%@", vkAppId];
@@ -326,25 +350,7 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
         NSLog(@"Logout: %@", dict);
         
         
-        NSHTTPCookieStorage * cookies = [NSHTTPCookieStorage sharedHTTPCookieStorage];
-        NSArray * cookiesUrlStrings =
-        @[@"http://api.vk.com"
-        , @"http://vk.com"
-        , @"http://login.vk.com"
-        , @"http://oauth.vk.com"
-        
-        , @"https://api.vk.com"
-        , @"https://vk.com"
-        , @"https://login.vk.com"
-        , @"https://oauth.vk.com"
-        ];
-        
-        for (NSString * string in cookiesUrlStrings) {
-            NSArray * vkCookies = [cookies cookiesForURL:[NSURL URLWithString:string]];
-            for (NSHTTPCookie * cookie in vkCookies) {
-                [cookies deleteCookie:cookie];
-            }
-        }
+        [self clearCookies];
         
         // Remove saved authorization information if it exists and it is
         // ok to clear it (logout, session invalid, app unauthorized)
