@@ -296,10 +296,9 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
     vkontakteViewController.delegate = self;
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:vkontakteViewController];
     
-    [baseViewController presentViewController:navController
-                                     animated:YES
-                                   completion:
-     ^{}];
+    dispatch_async(dispatch_get_main_queue(), ^(void) {
+        [baseViewController presentViewController:navController animated:YES completion:^{}];
+    });
 }
 
 - (void)logout {
