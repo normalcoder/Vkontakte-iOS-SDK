@@ -266,7 +266,7 @@ VkUrlStringParseResult parseUrlString(NSString * urlString, NSString ** token, N
         }
         return NO;
     }
-	NSLog(@"Request: %@", [URL absoluteString]); 
+//	NSLog(@"Request: %@", [URL absoluteString]); 
 	return YES;
 }
 

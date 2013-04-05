@@ -76,7 +76,7 @@ static NSString * kVKToken = @"VKToken";
         
         UITextField *myTextField = (UITextField *)[actionSheet viewWithTag:33];
         [[NSUserDefaults standardUserDefaults] setObject:myTextField.text forKey:@"captcha_user"];
-        NSLog(@"Captcha entered: %@",myTextField.text);
+//        NSLog(@"Captcha entered: %@",myTextField.text);
         
         // Вспоминаем какой был последний запрос и делаем его еще раз
         NSString *request = [[NSUserDefaults standardUserDefaults] objectForKey:@"request"];
@@ -113,8 +113,8 @@ static NSString * kVKToken = @"VKToken";
         NSString *captcha_user = [[NSUserDefaults standardUserDefaults] objectForKey:@"captcha_user"];
         reqURl = [reqURl stringByAppendingFormat:@"&captcha_sid=%@&captcha_key=%@", captcha_sid, [self URLEncodedString: captcha_user]];
     }
-    NSLog(@"Sending request: %@", reqURl);
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:reqURl] 
+//    NSLog(@"Sending request: %@", reqURl);
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:reqURl]
                                                            cachePolicy:NSURLRequestReloadIgnoringLocalCacheData 
                                                        timeoutInterval:60.0]; 
     
@@ -130,7 +130,7 @@ static NSString * kVKToken = @"VKToken";
         
         NSString *errorMsg = [[dict objectForKey:@"error"] objectForKey:@"error_msg"];
         
-        NSLog(@"Server response: %@ \nError: %@", dict, errorMsg);
+//        NSLog(@"Server response: %@ \nError: %@", dict, errorMsg);
         
         if([errorMsg isEqualToString:@"Captcha needed"])
         {
@@ -152,7 +152,7 @@ static NSString * kVKToken = @"VKToken";
 
 - (NSDictionary *)sendPOSTRequest:(NSString *)reqURl withImageData:(NSData *)imageData 
 {
-    NSLog(@"Sending request: %@", reqURl);
+//    NSLog(@"Sending request: %@", reqURl);
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:reqURl] 
                                                            cachePolicy:NSURLRequestReloadIgnoringLocalCacheData 
@@ -193,7 +193,7 @@ static NSString * kVKToken = @"VKToken";
         
         NSString *errorMsg = [[dict objectForKey:@"error"] objectForKey:@"error_msg"];
         
-        NSLog(@"Server response: %@ \nError: %@", dict, errorMsg);
+//        NSLog(@"Server response: %@ \nError: %@", dict, errorMsg);
         
         return dict;
     }
@@ -349,7 +349,7 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
                               JSONObjectWithData:responseData
                               options:kNilOptions 
                               error:&error];
-        NSLog(@"Logout: %@", dict);
+//        NSLog(@"Logout: %@", dict);
         
         
         [self clearCookies];
@@ -411,9 +411,9 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
 	NSData *response = [NSURLConnection sendSynchronousRequest:request 
 											 returningResponse:nil 
 														 error:nil];
-	NSString *responseString = [[NSString alloc] initWithData:response 
-                                                     encoding:NSUTF8StringEncoding];
-	NSLog(@"%@",responseString);
+//	NSString *responseString = [[NSString alloc] initWithData:response 
+//                                                     encoding:NSUTF8StringEncoding];
+//	NSLog(@"%@",responseString);
     
     NSError* error;
     NSDictionary<VkUserInfo> * parsedDictionary =
@@ -467,7 +467,7 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
                                  userId, 
                                  accessToken, 
                                  [self URLEncodedString:message]];
-    NSLog(@"sendTextMessage: %@", sendTextMessage);
+//    NSLog(@"sendTextMessage: %@", sendTextMessage);
     
     NSDictionary *result = [self sendRequest:sendTextMessage withCaptcha:NO];
     // Если есть описание ошибки в ответе
@@ -511,7 +511,7 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
                                         [self URLEncodedString:message], 
                                         link];
     
-    NSLog(@"sendTextAndLinkMessage: %@", sendTextAndLinkMessage);
+//    NSLog(@"sendTextAndLinkMessage: %@", sendTextAndLinkMessage);
     
     // Если запрос более сложный мы можем работать дальше с полученным ответом
     NSDictionary *result = [self sendRequest:sendTextAndLinkMessage withCaptcha:NO];
