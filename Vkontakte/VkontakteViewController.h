@@ -17,7 +17,7 @@
 #import <UIKit/UIKit.h>
 #import "MBProgressHUD.h"
 
-typedef void (^VkAuthSuccessHandler)(NSString * code);
+typedef void (^VkAuthSuccessHandler)(NSString * token, NSString * userID);
 typedef void (^VkAuthFailureHandler)(NSError * error);
 typedef void (^VkAuthCancelHandler)();
 

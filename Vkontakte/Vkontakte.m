@@ -16,7 +16,7 @@
 
 #import "Vkontakte.h"
 
-static NSString * kVKCode = @"VKCode";
+static NSString * kVKToken = @"VKToken";
 
 @interface Vkontakte (Private)
 
@@ -214,11 +214,9 @@ static NSString * kVKCode = @"VKCode";
 
 @implementation Vkontakte
 
-NSString * const vkAppId = @"3276219"; // Wisdom
-NSString * const vkPermissions = @""; //@"wall,photos,offline"; // TODO: add the necessary permissions
 NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
 
-@synthesize delegate;
+@synthesize delegate, permissions;
 
 #pragma mark - Initialize
 
@@ -242,16 +240,20 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
         expirationDate = [defaults objectForKey:@"VKExpirationDateKey"];
         userId = [defaults objectForKey:@"VKUserID"];
         email = [defaults objectForKey:@"VKUserEmail"];
+        vkAppId = (NSString *)[[NSBundle mainBundle].infoDictionary
+                               objectForKey:@"VkontakteAppID"];
+        permissions = @"";
     }
     return self;
 }
 
-- (void)storeCode:(NSString *)code {
-    [[NSUserDefaults standardUserDefaults] setObject:code forKey:kVKCode];
+- (void)storeToken:(NSString *)token {
+    [[NSUserDefaults standardUserDefaults] setObject:token forKey:kVKToken];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
-- (NSString *)storedCode {
-    return [[NSUserDefaults standardUserDefaults] objectForKey:kVKCode];
+- (NSString *)storedToken {
+    return [[NSUserDefaults standardUserDefaults] objectForKey:kVKToken];
 }
 
 - (BOOL)isAuthorized
@@ -267,27 +269,28 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
 }
 
 - (void)authenticateBaseViewController:(UIViewController *)baseViewController
-                               success:(void (^)(NSString * code))success
+                               success:(void (^)(NSString * token, NSString * userID))success
                                failure:(void (^)(NSError *))failure
                                 cancel:(void (^)())cancel {
     [self clearCookies];
     
     /*
-     WARNING: auth_type was set to "token" here.
-     This quick patch allows us to use VK's code auth mechanism instead of getting an access token right here.
-     It means that the other VK functions in this lib are now broken.
+     WARNING!
+     This quick patch allows us to use VK's code auth mechanism in addition to getting an access token right here.
+     It means that the other VK functions in this lib are now broken when we use code auth type.
      To fix this, we need to request our own access_token using the code we've just received.
      */
-    NSString *authLink = [NSString stringWithFormat:@"http://oauth.vk.com/oauth/authorize?client_id=%@&scope=%@&redirect_uri=%@&display=touch&response_type=code", vkAppId, vkPermissions, vkRedirectUrl];
+    NSString * responseTypeString = self.authType == VKAuthTypeCode ? @"code" : @"token";
+    NSString *authLink = [NSString stringWithFormat:@"http://oauth.vk.com/oauth/authorize?client_id=%@&scope=%@&redirect_uri=%@&display=touch&response_type=%@", vkAppId, permissions, vkRedirectUrl, responseTypeString];
     NSURL *url = [NSURL URLWithString:authLink];
     
     VkontakteViewController *vkontakteViewController =
     [[VkontakteViewController alloc]
      initWithAuthLink:url
      baseViewController:baseViewController
-     success:^(NSString * code){
-         [self storeCode:code];
-         success(code);
+     success:^(NSString * token, NSString * userID){
+         [self storeToken:token];
+         success(token, userID);
      } failure:^(NSError * e) {
          failure(e);
      } cancel:^{

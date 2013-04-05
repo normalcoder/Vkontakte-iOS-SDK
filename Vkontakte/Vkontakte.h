@@ -17,10 +17,13 @@
 #import <Foundation/Foundation.h>
 #import "VkontakteViewController.h"
 
-extern NSString * const vkAppId;
-extern NSString * const vkPermissions;
 extern NSString * const vkRedirectUrl;
 
+
+typedef NS_ENUM(NSInteger, VKAuthType) {
+    VKAuthTypeToken = 0,
+    VKAuthTypeCode,
+};
 
 @protocol VkUserInfo
 
@@ -40,7 +43,9 @@ extern NSString * const vkRedirectUrl;
 
 @interface Vkontakte : NSObject <VkontakteViewControllerDelegate, UIAlertViewDelegate>
 {    
-
+    NSString *vkAppId;
+    NSString *permissions;
+    
     NSString *accessToken;
     NSDate *expirationDate;
     NSString *userId;
@@ -50,11 +55,13 @@ extern NSString * const vkRedirectUrl;
 }
 
 @property (nonatomic, weak) id <VkontakteDelegate> delegate;
+@property (nonatomic, assign) VKAuthType authType;
+@property (nonatomic, copy) NSString * permissions;
 
 + (id)sharedInstance;
 - (BOOL)isAuthorized;
 - (void)authenticateBaseViewController:(UIViewController *)baseViewController
-                               success:(void (^)(NSString * code))success
+                               success:(void (^)(NSString * token, NSString * userID))success
                                failure:(void (^)(NSError *))failure
                                 cancel:(void (^)())cancel;
 - (void)logout;
@@ -65,8 +72,12 @@ extern NSString * const vkRedirectUrl;
 - (void)postImageToWall:(UIImage *)image text:(NSString *)message;
 - (void)postImageToWall:(UIImage *)image text:(NSString *)message link:(NSURL *)url;
 
-- (void)storeCode:(NSString *)code;
-- (NSString *)storedCode;
+- (void)storeToken:(NSString *)token;
+- (NSString *)storedToken;
+
+// Returns an empty string.
+// Overload this to request any special permissions.
+- (NSString *)permissions;
 
 @end
 

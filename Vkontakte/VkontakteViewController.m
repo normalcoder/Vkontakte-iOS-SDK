@@ -133,7 +133,7 @@ isViewAppeared = _isViewAppeared;
 }
 
 typedef enum {
-    VkUrlStringParseResultCode,
+    VkUrlStringParseResultToken,
     VkUrlStringParseResultError,
     VkUrlStringParseResultNothing,
 } VkUrlStringParseResult;
@@ -153,11 +153,20 @@ NSString * stringBetweenStrings(NSString * start, NSString * end, NSString * inn
     return nil;
 }
 
-VkUrlStringParseResult parseUrlString(NSString * urlString, NSString ** code, NSError ** error) {
-    NSString * codeString = stringBetweenStrings(@"blank.html#code=", @"&", urlString);
-    if (codeString) {
-        *code = codeString;
-        return VkUrlStringParseResultCode;
+VkUrlStringParseResult parseUrlString(NSString * urlString, NSString ** token, NSString ** userID, NSError ** error) {
+    
+    NSString * tokenString = stringBetweenStrings(@"blank.html#code=", @"&", urlString);
+    if (!tokenString) {
+        tokenString = stringBetweenStrings(@"blank.html#access_token=", @"&", urlString);
+    }
+    NSString * userIDString = stringBetweenStrings(@"&user_id=", @"&", urlString);
+    
+    if (tokenString) {
+        *token = tokenString;
+        if (userIDString && userID != nil) {
+            *userID = userIDString;
+        }
+        return VkUrlStringParseResultToken;
     } else {
         if ([urlString rangeOfString:@"error"].location != NSNotFound) {
             //todo: parse error_description
@@ -191,19 +200,20 @@ VkUrlStringParseResult parseUrlString(NSString * urlString, NSString ** code, NS
     
     /*
      WARNING: these two "code" params were "access_token" initially.
-     This quick patch allows us to use VK's code auth mechanism instead of getting an access token right here.
-     It means that the other VK functions in this lib are now broken.
+     This quick patch allows us to use VK's code auth mechanism in addition to getting an access token right here.
+     It means that the other VK functions in this lib are now broken when we use code auth type.
      To fix this, we need to request our own access_token using the code we've just received.
      */
     else {
-        NSString * code;
+        NSString * token;
+        NSString * userID;
         NSError * error;
-        switch (parseUrlString(webView.request.URL.absoluteString, &code, &error)) {
-            case VkUrlStringParseResultCode: {
+        switch (parseUrlString(webView.request.URL.absoluteString, &token, &userID, &error)) {
+            case VkUrlStringParseResultToken: {
                 [self.baseViewController dismissViewControllerAnimated:YES
                                                             completion:
                  ^{
-                     self.success(code);
+                     self.success(token, userID);
                  }];
             } break;
             case VkUrlStringParseResultError: {
