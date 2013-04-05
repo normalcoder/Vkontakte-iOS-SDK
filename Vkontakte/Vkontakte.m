@@ -191,7 +191,7 @@ static NSString * kVKToken = @"VKToken";
                               options:kNilOptions 
                               error:&error];
         
-        NSString *errorMsg = [[dict objectForKey:@"error"] objectForKey:@"error_msg"];
+//        NSString *errorMsg = [[dict objectForKey:@"error"] objectForKey:@"error_msg"];
         
 //        NSLog(@"Server response: %@ \nError: %@", dict, errorMsg);
         
@@ -344,11 +344,11 @@ NSString * const vkRedirectUrl = @"http://oauth.vk.com/blank.html";
                                                              error:nil];
     if(responseData)
     {
-        NSError* error;
-        NSDictionary* dict = [NSJSONSerialization 
-                              JSONObjectWithData:responseData
-                              options:kNilOptions 
-                              error:&error];
+//        NSError* error;
+//        NSDictionary* dict = [NSJSONSerialization
+//                              JSONObjectWithData:responseData
+//                              options:kNilOptions 
+//                              error:&error];
 //        NSLog(@"Logout: %@", dict);
         
         
